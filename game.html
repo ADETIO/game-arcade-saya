@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>2 Game dalam 1 - RPS & Flappy Bird</title>
+    <style>
+        /* ===== RESET & GLOBAL ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: #16213e;
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            color: #e2e2e2;
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #a8a8b3;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        /* ===== NAVIGASI TOMBOL ===== */
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            padding: 12px 32px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #2a2a4a;
+            color: #aaa;
+            letter-spacing: 1px;
+        }
+        .nav-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+        .nav-btn.active {
+            background: #e94560;
+            color: #fff;
+            box-shadow: 0 8px 25px rgba(233, 69, 96, 0.4);
+        }
+        .nav-btn.active:hover {
+            background: #ff6b81;
+        }
+
+        /* ===== GAME WRAPPER ===== */
+        .game-wrapper {
+            background: #0f0f23;
+            border-radius: 18px;
+            padding: 25px;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ====================================================
+                   GAME 1 : BATU-GUNTING-KERTAS (RPS)
+                   ==================================================== */
+        #game-rps {
+            display: block;
+            width: 100%;
+        }
+        #game-rps.hidden {
+            display: none;
+        }
+
+        .rps-title {
+            color: #fff;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        .rps-score {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 350px;
+            margin: 0 auto 20px;
+            color: #ddd;
+            font-size: 18px;
+        }
+        .rps-score span {
+            font-weight: 700;
+            color: #e94560;
+        }
+
+        .rps-choices {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 15px 0 25px;
+        }
+        .rps-btn {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border: 3px solid #2a2a4a;
+            background: #1a1a2e;
+            color: #fff;
+            font-size: 42px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .rps-btn:hover {
+            transform: scale(1.12);
+            border-color: #e94560;
+            background: #2a2a4a;
+            box-shadow: 0 0 30px rgba(233, 69, 96, 0.3);
+        }
+        .rps-btn:active {
+            transform: scale(0.95);
+        }
+
+        .rps-result {
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            min-height: 60px;
+            line-height: 1.5;
+        }
+        .rps-result .highlight-win {
+            color: #4caf50;
+        }
+        .rps-result .highlight-lose {
+            color: #f44336;
+        }
+        .rps-result .highlight-draw {
+            color: #ffc107;
+        }
+
+        .rps-choices-text {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            color: #aaa;
+            font-size: 18px;
+            margin-top: 10px;
+        }
+        .rps-choices-text .you {
+            color: #4fc3f7;
+        }
+        .rps-choices-text .cpu {
+            color: #ff8a65;
+        }
+
+        /* ====================================================
+                   GAME 2 : FLAPPY BIRD (Canvas)
+                   ==================================================== */
+        #game-flappy {
+            display: block;
+            width: 100%;
+        }
+        #game-flappy.hidden {
+            display: none;
+        }
+
+        .flappy-header {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 12px;
+            color: #fff;
+            font-size: 18px;
+        }
+        .flappy-header .score-label {
+            color: #aaa;
+        }
+        .flappy-header .score-value {
+            color: #e94560;
+            font-weight: 700;
+            font-size: 22px;
+        }
+
+        #flappyCanvas {
+            background: #1a1a2e;
+            border-radius: 14px;
+            border: 2px solid #2a2a4a;
+            display: block;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            aspect-ratio: 400 / 500;
+            cursor: pointer;
+            image-rendering: pixelated;
+        }
+
+        .flappy-controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .flappy-controls button {
+            padding: 10px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #2a2a4a;
+            color: #ddd;
+        }
+        .flappy-controls button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+        }
+        .flappy-controls .btn-start {
+            background: #4caf50;
+            color: #fff;
+        }
+        .flappy-controls .btn-start:hover {
+            background: #66bb6a;
+        }
+        .flappy-controls .btn-restart {
+            background: #e94560;
+            color: #fff;
+        }
+        .flappy-controls .btn-restart:hover {
+            background: #ff6b81;
+        }
+        .flappy-hint {
+            color: #777;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 550px) {
+            .container {
+                padding: 15px;
+            }
+            .rps-btn {
+                width: 70px;
+                height: 70px;
+                font-size: 32px;
+            }
+            .rps-choices-text {
+                gap: 25px;
+                font-size: 15px;
+            }
+            .nav-btn {
+                padding: 8px 20px;
+                font-size: 14px;
+            }
+            .rps-result {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🎮 ARCADE DUO</h1>
+        <p class="subtitle">Batu-Gunting-Kertas + Flappy Bird</p>
+
+        <!-- NAVIGASI -->
+        <div class="nav-buttons">
+            <button class="nav-btn active" data-game="rps">✊ Batu-Gunting-Kertas</button>
+            <button class="nav-btn" data-game="flappy">🐦 Flappy Bird</button>
+        </div>
+
+        <!-- GAME WRAPPER -->
+        <div class="game-wrapper">
+
+            <!-- ============ GAME 1 : RPS ============ -->
+            <div id="game-rps">
+                <h2 class="rps-title">✊📄✂️</h2>
+
+                <div class="rps-score">
+                    <div>👤 Kamu : <span id="rps-player-score">0</span></div>
+                    <div>🤖 CPU : <span id="rps-cpu-score">0</span></div>
+                </div>
+
+                <div class="rps-choices">
+                    <button class="rps-btn" data-choice="batu">✊</button>
+                    <button class="rps-btn" data-choice="kertas">📄</button>
+                    <button class="rps-btn" data-choice="gunting">✂️</button>
+                </div>
+
+                <div class="rps-result" id="rps-result">Pilih salah satu di atas!</div>
+
+                <div class="rps-choices-text">
+                    <span class="you">👤 Kamu : <span id="rps-player-choice">-</span></span>
+                    <span class="cpu">🤖 CPU : <span id="rps-cpu-choice">-</span></span>
+                </div>
+            </div>
+
+            <!-- ============ GAME 2 : FLAPPY BIRD ============ -->
+            <div id="game-flappy" class="hidden">
+                <div class="flappy-header">
+                    <span class="score-label">🏆 Skor</span>
+                    <span class="score-value" id="flappy-score">0</span>
+                </div>
+
+                <canvas id="flappyCanvas" width="400" height="500"></canvas>
+
+                <div class="flappy-controls">
+                    <button class="btn-start" id="flappy-start">▶ Mulai</button>
+                    <button class="btn-restart" id="flappy-restart">🔄 Ulang</button>
+                </div>
+                <p class="flappy-hint">🖱 Klik canvas / tekan Spasi untuk terbang</p>
+            </div>
+
+        </div>
+        <!-- end game-wrapper -->
+    </div>
+    <!-- end container -->
+
+    <script>
+        // ========================================================================
+        //  NAVIGASI : PINDAH GAME
+        // ========================================================================
+        const navBtns = document.querySelectorAll('.nav-btn');
+        const gameRps = document.getElementById('game-rps');
+        const gameFlappy = document.getElementById('game-flappy');
+
+        navBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                navBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                const game = this.dataset.game;
+                if (game === 'rps') {
+                    gameRps.classList.remove('hidden');
+                    gameFlappy.classList.add('hidden');
+                } else {
+                    gameRps.classList.add('hidden');
+                    gameFlappy.classList.remove('hidden');
+                }
+            });
+        });
+
+        // ========================================================================
+        //  GAME 1 : BATU-GUNTING-KERTAS (RPS)
+        // ========================================================================
+        let playerScore = 0;
+        let cpuScore = 0;
+
+        const rpsPlayerScore = document.getElementById('rps-player-score');
+        const rpsCpuScore = document.getElementById('rps-cpu-score');
+        const rpsResult = document.getElementById('rps-result');
+        const rpsPlayerChoice = document.getElementById('rps-player-choice');
+        const rpsCpuChoice = document.getElementById('rps-cpu-choice');
+
+        const rpsBtns = document.querySelectorAll('.rps-btn');
+
+        function getCpuChoice() {
+            const choices = ['batu', 'kertas', 'gunting'];
+            const randomIndex = Math.floor(Math.random() * 3);
+            return choices[randomIndex];
+        }
+
+        function getEmoji(choice) {
+            const map = { batu: '✊', kertas: '📄', gunting: '✂️' };
+            return map[choice] || '❓';
+        }
+
+        function determineWinner(player, cpu) {
+            if (player === cpu) return 'draw';
+            if (
+                (player === 'batu' && cpu === 'gunting') ||
+                (player === 'kertas' && cpu === 'batu') ||
+                (player === 'gunting' && cpu === 'kertas')
+            ) {
+                return 'win';
+            }
+            return 'lose';
+        }
+
+        function playRPS(playerChoice) {
+            const cpuChoice = getCpuChoice();
+
+            // Tampilkan pilihan
+            rpsPlayerChoice.textContent = getEmoji(playerChoice);
+            rpsCpuChoice.textContent = getEmoji(cpuChoice);
+
+            const result = determineWinner(playerChoice, cpuChoice);
+            let message = '';
+            let className = '';
+
+            if (result === 'win') {
+                playerScore++;
+                message = '🎉 Kamu MENANG!';
+                className = 'highlight-win';
+            } else if (result === 'lose') {
+                cpuScore++;
+                message = '😢 Kamu KALAH!';
+                className = 'highlight-lose';
+            } else {
+                message = '🤝 SERI!';
+                className = 'highlight-draw';
+            }
+
+            // Update skor
+            rpsPlayerScore.textContent = playerScore;
+            rpsCpuScore.textContent = cpuScore;
+
+            // Tampilkan hasil dengan warna
+            rpsResult.innerHTML = `${message} <span style="font-size:20px;display:block;margin-top:4px;">${getEmoji(playerChoice)} vs ${getEmoji(cpuChoice)}</span>`;
+            rpsResult.className = 'rps-result ' + className;
+        }
+
+        rpsBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const choice = this.dataset.choice;
+                playRPS(choice);
+            });
+        });
+
+        // ========================================================================
+        //  GAME 2 : FLAPPY BIRD (Canvas)
+        // ========================================================================
+        const canvas = document.getElementById('flappyCanvas');
+        const ctx = canvas.getContext('2d');
+        const flappyScoreSpan = document.getElementById('flappy-score');
+
+        // --- Konfigurasi ---
+        const GRAVITY = 0.4;
+        const JUMP_FORCE = -7.5;
+        const PIPE_WIDTH = 55;
+        const PIPE_GAP = 150;
+        const PIPE_SPEED = 2.5;
+        const BIRD_RADIUS = 15;
+
+        // --- Variabel game ---
+        let bird = { x: 80, y: 250, vy: 0, radius: BIRD_RADIUS };
+        let pipes = [];
+        let score = 0;
+        let gameState = 'idle'; // 'idle' | 'playing' | 'gameover'
+        let frameId = null;
+
+        // --- Fungsi reset ---
+        function resetGame() {
+            bird = { x: 80, y: 250, vy: 0, radius: BIRD_RADIUS };
+            pipes = [];
+            score = 0;
+            flappyScoreSpan.textContent = '0';
+            gameState = 'idle';
+        }
+
+        // --- Buat pipa baru ---
+        function addPipe() {
+            const minY = 60;
+            const maxY = canvas.height - PIPE_GAP - 60;
+            const topHeight = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
+            pipes.push({
+                x: canvas.width,
+                topHeight: topHeight,
+                bottomY: topHeight + PIPE_GAP,
+                scored: false
+            });
+        }
+
+        // --- Lompat ---
+        function jump() {
+            if (gameState === 'idle') {
+                // Mulai game otomatis saat klik pertama
+                gameState = 'playing';
+                // Beri lompatan awal
+                bird.vy = JUMP_FORCE;
+                // Hapus pipa lama kalau ada (dari reset)
+                if (pipes.length === 0) {
+                    // Beri jeda sebelum pipa pertama
+                    setTimeout(() => { if (gameState === 'playing') addPipe(); }, 500);
+                }
+                return;
+            }
+            if (gameState === 'playing') {
+                bird.vy = JUMP_FORCE;
+            }
+        }
+
+        // --- Update game ---
+        function update() {
+            if (gameState !== 'playing') return;
+
+            // 1. Fisika burung
+            bird.vy += GRAVITY;
+            bird.y += bird.vy;
+
+            // 2. Batas atas / bawah
+            if (bird.y - bird.radius < 0) {
+                bird.y = bird.radius;
+                bird.vy = 0;
+            }
+            if (bird.y + bird.radius > canvas.height) {
+                gameOver();
+                return;
+            }
+
+            // 3. Gerakkan pipa
+            for (let i = pipes.length - 1; i >= 0; i--) {
+                const p = pipes[i];
+                p.x -= PIPE_SPEED;
+
+                // Hapus pipa di luar layar
+                if (p.x + PIPE_WIDTH < 0) {
+                    pipes.splice(i, 1);
+                    continue;
+                }
+
+                // --- Deteksi skor ---
+                if (!p.scored && p.x + PIPE_WIDTH < bird.x) {
+                    p.scored = true;
+                    score++;
+                    flappyScoreSpan.textContent = score;
+                }
+
+                // --- Deteksi tabrakan ---
+                // Kotak pipa atas
+                if (bird.x + bird.radius > p.x && bird.x - bird.radius < p.x + PIPE_WIDTH) {
+                    if (bird.y - bird.radius < p.topHeight || bird.y + bird.radius > p.bottomY) {
+                        gameOver();
+                        return;
+                    }
+                }
+            }
+
+            // 4. Tambah pipa baru
+            if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - 220) {
+                addPipe();
+            }
+        }
+
+        // --- Game Over ---
+        function gameOver() {
+            if (gameState === 'gameover') return;
+            gameState = 'gameover';
+            // Tampilkan pesan di canvas (digambar di draw)
+        }
+
+        // --- Gambar semua ---
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // === Latar (gradasi malam) ===
+            const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            grad.addColorStop(0, '#0b0b1a');
+            grad.addColorStop(0.5, '#1a1a3e');
+            grad.addColorStop(1, '#2a1a3a');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // === Bintang ===
+            ctx.fillStyle = 'rgba(255,255,255,0.6)';
+            const stars = [
+                [30, 40],
+                [120, 20],
+                [250, 50],
+                [340, 30],
+                [70, 80],
+                [200, 70],
+                [370, 90],
+                [50, 130],
+                [300, 120]
+            ];
+            stars.forEach(([x, y]) => {
+                ctx.beginPath();
+                ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // === Pipa ===
+            pipes.forEach(p => {
+                // Pipa atas
+                const gradTop = ctx.createLinearGradient(p.x, 0, p.x + PIPE_WIDTH, 0);
+                gradTop.addColorStop(0, '#2d7d2d');
+                gradTop.addColorStop(0.5, '#4caf50');
+                gradTop.addColorStop(1, '#2d7d2d');
+                ctx.fillStyle = gradTop;
+                ctx.fillRect(p.x, 0, PIPE_WIDTH, p.topHeight);
+                // Tutup pipa atas
+                ctx.fillStyle = '#2d7d2d';
+                ctx.fillRect(p.x - 6, p.topHeight - 20, PIPE_WIDTH + 12, 20);
+
+                // Pipa bawah
+                const gradBot = ctx.createLinearGradient(p.x, 0, p.x + PIPE_WIDTH, 0);
+                gradBot.addColorStop(0, '#2d7d2d');
+                gradBot.addColorStop(0.5, '#4caf50');
+                gradBot.addColorStop(1, '#2d7d2d');
+                ctx.fillStyle = gradBot;
+                ctx.fillRect(p.x, p.bottomY, PIPE_WIDTH, canvas.height - p.bottomY);
+                // Tutup pipa bawah
+                ctx.fillStyle = '#2d7d2d';
+                ctx.fillRect(p.x - 6, p.bottomY, PIPE_WIDTH + 12, 20);
+
+                // Outline gelap
+                ctx.strokeStyle = '#1a4a1a';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(p.x, 0, PIPE_WIDTH, p.topHeight);
+                ctx.strokeRect(p.x, p.bottomY, PIPE_WIDTH, canvas.height - p.bottomY);
+            });
+
+            // === Burung (dengan gradasi) ===
+            const gradBird = ctx.createRadialGradient(
+                bird.x - 5, bird.y - 5, 2,
+                bird.x, bird.y, bird.radius
+            );
+            gradBird.addColorStop(0, '#ffd54f');
+            gradBird.addColorStop(0.6, '#ffb300');
+            gradBird.addColorStop(1, '#f57c00');
+            ctx.beginPath();
+            ctx.arc(bird.x, bird.y, bird.radius, 0, Math.PI * 2);
+            ctx.fillStyle = gradBird;
+            ctx.fill();
+            ctx.strokeStyle = '#e65100';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+
+            // Mata burung
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(bird.x + 6, bird.y - 4, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#1a1a2e';
+            ctx.beginPath();
+            ctx.arc(bird.x + 8, bird.y - 5, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Paruh
+            ctx.fillStyle = '#ff6f00';
+            ctx.beginPath();
+            ctx.moveTo(bird.x + 14, bird.y + 2);
+            ctx.lineTo(bird.x + 24, bird.y + 4);
+            ctx.lineTo(bird.x + 14, bird.y + 10);
+            ctx.fill();
+
+            // Sayap (efek kepak berdasarkan kecepatan)
+            ctx.fillStyle = 'rgba(255, 193, 7, 0.3)';
+            const wingAngle = Math.sin(Date.now() / 150) * 0.4;
+            ctx.beginPath();
+            ctx.ellipse(bird.x - 10, bird.y - 2, 14, 6, -0.3 + wingAngle, 0, Math.PI * 2);
+            ctx.fill();
+
+            // === Status / Pesan ===
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            if (gameState === 'idle') {
+                ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                ctx.fillRect(0, canvas.height / 2 - 50, canvas.width, 100);
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 28px Segoe UI, sans-serif';
+                ctx.fillText('🐦 Klik / Spasi', canvas.width / 2, canvas.height / 2 - 10);
+                ctx.font = '18px Segoe UI, sans-serif';
+                ctx.fillStyle = '#aaa';
+                ctx.fillText('untuk mulai terbang!', canvas.width / 2, canvas.height / 2 + 36);
+            }
+
+            if (gameState === 'gameover') {
+                ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                ctx.fillRect(0, canvas.height / 2 - 70, canvas.width, 140);
+                ctx.fillStyle = '#ff6b6b';
+                ctx.font = 'bold 40px Segoe UI, sans-serif';
+                ctx.fillText('💥 GAME OVER', canvas.width / 2, canvas.height / 2 - 20);
+                ctx.fillStyle = '#fff';
+                ctx.font = '22px Segoe UI, sans-serif';
+                ctx.fillText('Skor akhir: ' + score, canvas.width / 2, canvas.height / 2 + 40);
+                ctx.fillStyle = '#aaa';
+                ctx.font = '15px Segoe UI, sans-serif';
+                ctx.fillText('Klik "Ulang" untuk main lagi', canvas.width / 2, canvas.height / 2 + 78);
+            }
+
+            // Ground tipis
+            ctx.fillStyle = 'rgba(30,30,50,0.4)';
+            ctx.fillRect(0, canvas.height - 4, canvas.width, 4);
+        }
+
+        // --- Loop utama ---
+        function gameLoop() {
+            update();
+            draw();
+            frameId = requestAnimationFrame(gameLoop);
+        }
+
+        // --- Event untuk lompat ---
+        function handleJump(e) {
+            if (e) e.preventDefault();
+            // Kalau game over, jangan lompat
+            if (gameState === 'gameover') return;
+            jump();
+        }
+
+        // --- Start game (tombol) ---
+        function startGame() {
+            if (gameState === 'playing') return;
+            resetGame();
+            gameState = 'playing';
+            bird.vy = JUMP_FORCE;
+            // Kosongkan pipa lalu beri pipa pertama setelah jeda
+            pipes = [];
+            setTimeout(() => { if (gameState === 'playing') addPipe(); }, 400);
+        }
+
+        // --- Restart (tombol) ---
+        function restartGame() {
+            resetGame();
+            pipes = [];
+            // Kalau loop berhenti karena gameover, restart loop
+            if (!frameId) {
+                frameId = requestAnimationFrame(gameLoop);
+            }
+        }
+
+        // --- Pasang event listener ---
+        canvas.addEventListener('click', handleJump);
+        document.addEventListener('keydown', function(e) {
+            if (e.key === ' ' || e.key === 'Space') {
+                e.preventDefault();
+                handleJump(e);
+            }
+        });
+
+        document.getElementById('flappy-start').addEventListener('click', startGame);
+        document.getElementById('flappy-restart').addEventListener('click', restartGame);
+
+        // --- Mulai loop Flappy (idle) ---
+        resetGame();
+        gameLoop();
+
+        // ========================================================================
+        //  TAMBAHAN : Saat pindah ke tab Flappy, reset idle biar rapi
+        // ========================================================================
+        // (Tidak perlu reset, biarkan saja berjalan di background)
+        console.log('🎮 ARCADE DUO siap! Mainkan Batu-Gunting-Kertas atau Flappy Bird.');
+    </script>
+
+</body>
+</html>
